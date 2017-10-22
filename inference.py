@@ -151,7 +151,6 @@ class ExactInference(InferenceModule):
         #print(self.beliefs)
         #print(self.getJailPosition())
         "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
 
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
@@ -224,7 +223,12 @@ class ExactInference(InferenceModule):
         positions after a time update from a particular position.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        newBeliefs = util.Counter()
+        for oldGhostPos in self.legalPositions:
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldGhostPos))
+            for newPos, prob in newPosDist.items():
+                newBeliefs[newPos] += prob * self.beliefs[oldGhostPos]
+        self.beliefs = newBeliefs
 
     def getBeliefDistribution(self):
         return self.beliefs
