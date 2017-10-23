@@ -159,8 +159,12 @@ class GreedyBustersAgent(BustersAgent):
         pacmanPosition = gameState.getPacmanPosition()
         legal = [a for a in gameState.getLegalPacmanActions()]
         livingGhosts = gameState.getLivingGhosts()
-        livingGhostPositionDistributions = \
-            [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
-             if livingGhosts[i+1]]
+        livingGhostPositionDistributions = [beliefs for i, beliefs in enumerate(self.ghostBeliefs) if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        likelyPosns = [dists.argMax() for dists in livingGhostPositionDistributions]    #get most likely position for all pacman, i.e one with highest probability
+        ghostDists = [(self.distancer.getDistance(pacmanPosition, likelyPos),likelyPos) for likelyPos in likelyPosns]   #get distance from pacman to likely ghost positions
+        closestGhost = min(ghostDists)[1]       #find closest ghost
+        successorPositions = [(Actions.getSuccessor(pacmanPosition, action),action) for action in legal]    # find pacman legal actions
+        minDists = [(self.distancer.getDistance(closestGhost, succPos),action) for succPos,action in successorPositions]    #get distance from pacman successor positions to closest ghost
+
+        return min(minDists)[1]     #return the action that would take pacman closer to closest ghost

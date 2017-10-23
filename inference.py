@@ -157,12 +157,12 @@ class ExactInference(InferenceModule):
         # and noisyDistance is None
         allPossible = util.Counter()
         if noisyDistance is None:
-            allPossible[self.getJailPosition()] = 1.0
+            allPossible[self.getJailPosition()] = 1.0   #Handle edge case of captured ghosts
         else:
             for p in self.legalPositions:
                 trueDistance = util.manhattanDistance(p, pacmanPosition)
                 if emissionModel[trueDistance] > 0:
-                    allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
+                    allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]  #Multiply prior belief with new likelihood P(noisyDistance | trueDistance)
 
         "*** END YOUR CODE HERE ***"
 
@@ -225,9 +225,9 @@ class ExactInference(InferenceModule):
         "*** YOUR CODE HERE ***"
         newBeliefs = util.Counter()
         for oldGhostPos in self.legalPositions:
-            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldGhostPos))
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldGhostPos))    #get probability distribution for next ghost states
             for newPos, prob in newPosDist.items():
-                newBeliefs[newPos] += prob * self.beliefs[oldGhostPos]
+                newBeliefs[newPos] += prob * self.beliefs[oldGhostPos]  #multiply prior belief of position with new distribution. Add together values from all transitions
         self.beliefs = newBeliefs
 
     def getBeliefDistribution(self):
