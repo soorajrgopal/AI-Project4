@@ -418,6 +418,15 @@ class JointParticleFilter:
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        legal = self.legalPositions
+        prd = itertools.product(legal, legal)
+        prd_list = [elem for elem in prd]
+        result_list = prd_list * (self.numParticles // len(prd_list))
+        balance = self.numParticles % len(prd_list)
+        result_list += prd_list[:balance]
+        random.shuffle(result_list)
+        self.particles = result_list
+        return self.particles
 
     def addGhostAgent(self, agent):
         """
@@ -465,6 +474,24 @@ class JointParticleFilter:
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        distribution = self.getBeliefDistribution()
+        for i in range(self.numGhosts):
+            if noisyDistances[i] is None:
+                self.particles = [self.getParticleWithGhostInJail(particle,i) for particle in self.particles]     #Handle first special case of captured ghost
+                distribution = self.getBeliefDistribution()
+            else:
+                for p in distribution:
+                    trueDistance = util.manhattanDistance(p[i], pacmanPosition)
+                    distribution[p] = emissionModels[i][trueDistance] * distribution[p]  #Multiply prior belief with new likelihood
+
+        if distribution.totalCount() == 0.0:          #Second special case
+            self.initializeParticles()
+            for i in range(self.numGhosts):
+                if noisyDistances[i] is None:
+                    self.particles = [self.getParticleWithGhostInJail(particle,i) for particle in self.particles]     #Handle first special case of captured ghost
+        else:
+            distribution.normalize()
+            self.particles = [util.sample(distribution) for i in range(self.numParticles)]
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
@@ -532,7 +559,11 @@ class JointParticleFilter:
 
     def getBeliefDistribution(self):
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        beliefs = util.Counter()
+        for particle in self.particles:
+            beliefs[particle] += 1
+        beliefs.normalize()
+        return beliefs
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
